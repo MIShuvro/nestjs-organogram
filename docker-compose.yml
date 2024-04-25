@@ -6,7 +6,7 @@ services:
     container_name: mysql-db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: voting-app
+      MYSQL_DATABASE: qpro-task
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - .mysql:/var/lib/mysql
@@ -14,6 +14,7 @@ services:
       - --default-authentication-plugin=mysql_native_password
     ports:
       - 3306:3306
+
   phpmyadmin:
     image: phpmyadmin
     container_name: phpmyadmin
@@ -33,56 +34,29 @@ services:
     ports:
       - 6379:6379
 
-  rabbit-mq:
-    image: rabbitmq:3-management
-    container_name: 'rabbitmq'
-    restart: unless-stopped
-    volumes:
-      - .rabbitmq:/var/lib/rabbitmq
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
-      interval: 5s
-      timeout: 15s
-      retries: 10
-    ports:
-      - 5672:5672
-      - 15672:15672
-  voting-app:
+  qpro-task:
     build: .
-    container_name: voting-app
+    container_name: qpro-task
     restart: unless-stopped
     environment:
       PORT: 3000
-      SWAGGER_USERNAME: shuvro
-      SWAGGER_PASSWORD: 1010
-      RABBIT_MQ_URL: amqp://guest:guest@rabbit-mq:5672
-      RABBIT_MQ_POCKER_EXCHANGE: poker_exchange
-      RABBIT_MQ_POCKER_ROUTING_KEY: poker_routing_key
-      RABBIT_MQ_POCKER_QUEUE: poker_queue
-
-      RABBITMQ_VOTING_EXCHANGE: redis_voting_exchange
-      RABBITMQ_VOTING_ROTING_KEY: redis_voting_routing_key
-      RABBITMQ_VOTING_QUEUE: redis_voting_queue
 
       DB_DRIVER: mysql
       DB_HOST: mysql-database
-      DB_PORT: 3306
+      DB_NAME: qpro-task
       DB_PASSWORD: root
+      DB_PORT: 3306
       DB_USER: root
-      DB_NAME: voting-app
       RUN_MIGRATION: true
 
-      # REDIS
+      APP_SECRET: qpro
       REDIS_URL: redis
-      REDIS_KEY_PREFIX: voting
+      REDIS_KEY_PREFIX: qpro
       REDIS_DB_INDEX: 0
-
-      JWT_SECRET: shuvro
-      VOTING_TOKEN_VALIDITY_IN_MIN: 10
     depends_on:
       - redis
       - mysql-database
-      - rabbit-mq
     ports:
       - 3000:3000
+
 

@@ -12,7 +12,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message = typeof message === 'string' ? message : message.join(',');
 
       if (statusCode >= 400 && statusCode <= 499) {
-        let code = statusCode + 3600;
+        let code = statusCode ;
         return response.status(HttpStatus.OK).json({
           status_code: code,
           message: message,

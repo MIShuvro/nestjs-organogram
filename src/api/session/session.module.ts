@@ -1,13 +1,16 @@
 import { Module } from '@nestjs/common';
-import { SessionController } from './session.controller';
-import { SessionService } from './session.service';
-import { TypegooseModule } from 'nestjs-typegoose';
-import { Session } from './session.type';
+import { SessionService } from './service/session.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { SessionEntity } from './entity/session.entity';
+import { SessionRepository } from './repository/session.repository';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-  imports: [TypegooseModule.forFeature([Session])],
-  controllers: [SessionController],
-  providers: [SessionService],
+  imports: [TypeOrmModule.forFeature([SessionEntity])],
+  controllers: [],
+  providers: [SessionService, SessionRepository],
   exports: [SessionService]
 })
-export class SessionModule { }
+export class SessionModule {
+}

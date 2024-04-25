@@ -1,59 +1,54 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from 'nestjs-typegoose';
-import { Session } from './session.type';
-import { ReturnModelType, DocumentType } from '@typegoose/typegoose';
-import { AUTH_DOOMAIN, jwtPayload } from './session.utils';
-import { JwtService } from '@nestjs/jwt'
-import { store, destroy } from 'quick-crud';
+import { JwtService } from '@nestjs/jwt';
+import { jwtPayload } from '../../../common/utils';
+import { SessionRepository } from '../repository/session.repository';
+import { SessionEntity } from '../entity/session.entity';
 
 @Injectable()
 export class SessionService {
 
-    constructor(@InjectModel(Session) private readonly model: ReturnModelType<typeof Session>,
-        private readonly jwtService: JwtService
-    ) { }
+  constructor(private sessionRepository: SessionRepository, private readonly jwtService: JwtService) {
+  }
 
-    async findORcreate(sub: string, domain: AUTH_DOOMAIN): Promise<DocumentType<Session>> {
+  async getSession(subscriber: number): Promise<SessionEntity> {
+    return this.sessionRepository.findOne({
+      where: {
+        subscriber
+      }
+    });
+  }
 
-        const session = await this.getSession(sub, domain);
+  async findSession(subscriber: number):Promise<SessionEntity> {
+
+    let session = await this.getSession(subscriber);
 
 
-        if (!session) {
-            const newSession = await this.createSession(sub, domain)
+    if (!session) {
+      session = await this.createSession(subscriber);
 
-            return newSession
-        }
-        return session;
     }
-
-    async getSession(sub: string, domain: AUTH_DOOMAIN): Promise<DocumentType<Session>> {
-        return this.model.findOne({ sub, domain })
-    }
-
-    async createSession(sub: string, domain: AUTH_DOOMAIN): Promise<DocumentType<Session>> {
-
-        const token = await this.generateToken(sub, domain)
-
-        const data = { sub, domain, token }
-        
-        const session = await this.model.create(data)
-        
-        return session
-    }
+    return session;
+  }
 
 
-    async generateToken(sub: string, domain: AUTH_DOOMAIN): Promise<string> {
-        const payload: jwtPayload = {
-            iss: process.env.APP_SECRET,
-            sub,
-            domain
-        }
+  async createSession(subscriber: number): Promise<SessionEntity> {
+    const token = await this.generateToken(subscriber);
+    const data = { subscriber, token };
+    return this.sessionRepository.save(data);
+  }
 
-        return this.jwtService.signAsync(payload)
-    }
+  async generateToken(subscriber: number): Promise<string> {
+    const payload: jwtPayload = {
+      iss: process.env.APP_SECRET,
+      subscriber
+    };
+    return this.jwtService.signAsync(payload);
+  }
 
-    async destorySession(sub: string, domain: AUTH_DOOMAIN): Promise<boolean> {
-        return destroy({ model: this.model, where: { sub, domain } })
-    }
+
+  async deleteSession(subscriber: number): Promise<boolean> {
+    await this.sessionRepository.delete({ subscriber: subscriber });
+    return true;
+  }
 
 }

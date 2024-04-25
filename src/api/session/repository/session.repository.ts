@@ -5,6 +5,6 @@ import { SessionEntity } from '../entity/session.entity';
 @Injectable()
 export class SessionRepository extends Repository<SessionEntity> {
   constructor(private dataSource: DataSource) {
-    super(DesignationEntity, dataSource.manager);
+    super(SessionEntity, dataSource.manager);
   }
 }

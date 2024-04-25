@@ -1,40 +1,60 @@
-import { Body, Controller, Get, HttpStatus, Injectable, Post, UseInterceptors } from '@nestjs/common';
-import { DesignationService } from '../service/designation.service';
-import { DesignationResponseDto } from '../dto/response/designation-response.dto';
+import { Body, Controller, Get, HttpStatus, Injectable, Param, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { EmployeeService } from '../service/employee.service';
+import { EmployeeResponseDto, EmployeeResponseWithChildDto } from '../dto/response/employee-response.dto';
 import {
   BaseApiResponse,
   SwaggerBaseApiErrorResponse,
   SwaggerBaseApiResponse
 } from '../../../common/dto/base-api-response.dto';
-import { ApiCreatedResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { DesignationRequestDto } from '../dto/request/designation-request.dto';
+import {
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiSecurity,
+  ApiTags
+} from '@nestjs/swagger';
+import { EmployeeRequestDto } from '../dto/request/employee-request.dto';
 import { ResponseInterceptor } from '../../../common/interceptors/response.interceptor';
+import { AuthServiceGuard } from '../../../common/guard/auth.guard';
 
 
-@ApiTags('Employee Designation')
+@ApiTags('Employee')
 @Injectable()
 @UseInterceptors(ResponseInterceptor)
-@Controller({ version: '1', path: 'employee/designations' })
-export class DesignationController {
-  constructor(private readonly designationService: DesignationService) {
+@Controller({ version: '1', path: 'employees' })
+export class EmployeeController {
+  constructor(private readonly employeeService: EmployeeService) {
   }
 
   @Post()
-  @ApiCreatedResponse({ type: SwaggerBaseApiResponse(DesignationResponseDto, HttpStatus.CREATED) })
+  @ApiCreatedResponse({ type: SwaggerBaseApiResponse(EmployeeResponseDto, HttpStatus.CREATED) })
   @ApiInternalServerErrorResponse({ type: SwaggerBaseApiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR) })
-  async create(@Body() body: DesignationRequestDto): Promise<BaseApiResponse<DesignationResponseDto>> {
-    let data = await this.designationService.createDesignation(body);
+  async create(@Body() body: EmployeeRequestDto): Promise<BaseApiResponse<EmployeeResponseDto>> {
+    let data = await this.employeeService.createEmployee(body);
     return {
       message: 'CREATED',
       data
     };
   }
 
-  @Get()
-  @ApiOkResponse({ type: SwaggerBaseApiResponse([DesignationResponseDto], HttpStatus.OK) })
+  @Get('designations/:id/employee-details')
+  @ApiOkResponse({ type: SwaggerBaseApiResponse([EmployeeResponseWithChildDto], HttpStatus.OK) })
   @ApiInternalServerErrorResponse({ type: SwaggerBaseApiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR) })
-  async find(): Promise<BaseApiResponse<DesignationResponseDto[]>> {
-    let data = await this.designationService.findDesignations();
+  async findEmployeeByPosition(@Param('id') id: number): Promise<BaseApiResponse<EmployeeResponseWithChildDto[]>> {
+    let data = await this.employeeService.findEmployeeDetails(id);
+    return {
+      message: 'OK',
+      data
+    };
+  }
+
+  @Get('designations/:id/employee-details/jwt')
+  @UseGuards(AuthServiceGuard)
+  @ApiSecurity('auth')
+  @ApiOkResponse({ type: SwaggerBaseApiResponse([EmployeeResponseWithChildDto], HttpStatus.OK) })
+  @ApiInternalServerErrorResponse({ type: SwaggerBaseApiErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR) })
+  async findEmployeeByPositionWithAuthorization(@Param('id') id: number): Promise<BaseApiResponse<EmployeeResponseWithChildDto[]>> {
+    let data = await this.employeeService.findEmployeeDetails(id);
     return {
       message: 'OK',
       data

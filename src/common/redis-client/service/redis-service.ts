@@ -4,25 +4,23 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class RedisClientService {
-  constructor(@InjectRedis() private readonly redisClient: Redis) {}
-
-  async addSortedSetMember(key: string, score, identifire: string) {
-    await this.redisClient.zadd(key, score, identifire);
+  constructor(@InjectRedis() private readonly redisClient: Redis) {
   }
 
-  async incrementSortedSetMember(key: string, score: number, identifire: string) {
-    await this.redisClient.zincrby(key, score, identifire);
+
+  async setValueWithExpireInSec(key: string, value: string, seconds: number): Promise<any> {
+    return this.redisClient.set(key, value, 'EX', seconds);
   }
 
-  async getAllSortedSetMembersWithScore(key: string) {
-    return this.redisClient.zrangebyscore(key, '-inf', '+inf', 'WITHSCORES');
+  async getValue(key: string): Promise<any> {
+    return this.redisClient.get(key);
   }
 
-  async setKeyExpiry(key: string, expInSec: number) {
-    let ttlVal = await this.redisClient.ttl(key);
-    if (ttlVal === -1) {
-      return this.redisClient.expire(key, expInSec);
-    }
-    return ttlVal;
+  async delKey(key: string): Promise<any> {
+    return this.redisClient.del(key);
+  }
+  async checkKeyExist(key: string): Promise<boolean> {
+    let res = await this.redisClient.exists(key);
+    return res > 0;
   }
 }
