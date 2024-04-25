@@ -17,3 +17,11 @@ redis: connect any redis GUI with 6379 port
 database: connect any DB GUI with 3306 port
 ```
 
+### Delete any kind of running port if you need
+```
+search the port
+sudo lsof -i :3306
+
+then kill with PID
+sudo kill -9 PID
+```
