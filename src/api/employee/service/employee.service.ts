@@ -10,7 +10,7 @@ import { raw } from 'express';
 import { DESIGNATION_IDENTIFIER } from '../../../common/constants';
 import { DesignationEntity } from '../../employee-designation/entity/designation.entity';
 import { hashPassword } from '../../../common/utils';
-import { getRedisDesignationKey } from '../../../common/utils/redis.util';
+import { getPatternKey, getRedisDesignationKey } from '../../../common/utils/redis.util';
 import { RedisClientService } from '../../../common/redis-client/service/redis-service';
 import { MyLogger } from '../../../common/logger/service/logger.service';
 
@@ -112,7 +112,7 @@ export class EmployeeService {
       throw new NotFoundException('Employee not found');
     }
 
-    let redisKey = getRedisDesignationKey();
+    let redisKey = getRedisDesignationKey(designation.id);
     let isKeyExists = await this.redisClient.checkKeyExist(redisKey);
     if (isKeyExists) {
       return this.getEmployeeInfoFromRedis(redisKey);

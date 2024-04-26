@@ -16,6 +16,10 @@ export class RedisClientService {
     return this.redisClient.get(key);
   }
 
+
+  async getKeys(key: string): Promise<any> {
+    return this.redisClient.keys(key)
+  }
   async delKey(key: string): Promise<any> {
     return this.redisClient.del(key);
   }
